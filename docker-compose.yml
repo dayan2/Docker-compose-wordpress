@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+
+  mysql:
+    image: mariadb
+    container_name: ${APP_NAME}-mysql
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+    restart: always
+    ports:
+      - '3306:3306'
+    networks:
+      - wpjsite
+
+  wordpress:
+    image: wordpress:latest
+    container_name: ${APP_NAME}-wordpress
+    volumes: ['./src:/var/www/html']
+    depends_on:
+      - mysql
+    restart: always
+    ports:
+      - '9000:80'
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    networks:
+      - wpjsite
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${APP_NAME}-phpmyadmin
+    depends_on:
+      - mysql
+    volumes:
+      - ./config/phpmyadmin.ini:/usr/local/etc/php/conf.d/phpmyadmin.ini
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - '8080:80'
+    restart: always
+    networks:
+      - wpjsite
+
+networks:
+  wpjsite:
+volumes:
+  db_data:
+
